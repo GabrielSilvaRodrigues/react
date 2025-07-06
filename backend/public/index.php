@@ -1,4 +1,8 @@
 <?php
+// Habilitar exibição de erros para debug
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../vendor/autoload.php';
 require_once '../config/database.php';
 
@@ -22,55 +26,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$router = new Router();
+try {
+    $router = new Router();
 
-// Controllers
-$usuarioController = new UsuarioController();
-$pacienteController = new PacienteController();
-$medicoController = new MedicoController();
-$nutricionistaController = new NutricionistaController();
-$dietaController = new DietaController();
-$alimentoController = new AlimentoController();
-$consultaController = new ConsultaController();
-$dadosController = new DadosAntropometricosController();
+    // Controllers
+    $usuarioController = new UsuarioController();
+    $pacienteController = new PacienteController();
+    $medicoController = new MedicoController();
+    $nutricionistaController = new NutricionistaController();
+    $dietaController = new DietaController();
+    $alimentoController = new AlimentoController();
+    $consultaController = new ConsultaController();
+    $dadosController = new DadosAntropometricosController();
 
-// Rotas de Usuários
-$router->get('/api/usuarios', [$usuarioController, 'index']);
-$router->get('/api/usuarios/{id}', [$usuarioController, 'show']);
-$router->post('/api/usuarios', [$usuarioController, 'store']);
-$router->put('/api/usuarios/{id}', [$usuarioController, 'update']);
-$router->delete('/api/usuarios/{id}', [$usuarioController, 'destroy']);
+    // Rotas de Usuários
+    $router->get('/api/usuarios', [$usuarioController, 'index']);
+    $router->get('/api/usuarios/{id}', [$usuarioController, 'show']);
+    $router->post('/api/usuarios', [$usuarioController, 'store']);
+    $router->put('/api/usuarios/{id}', [$usuarioController, 'update']);
+    $router->delete('/api/usuarios/{id}', [$usuarioController, 'destroy']);
 
-// Rotas de Pacientes
-$router->get('/api/pacientes', [$pacienteController, 'index']);
-$router->get('/api/pacientes/{id}', [$pacienteController, 'show']);
-$router->post('/api/pacientes', [$pacienteController, 'store']);
-$router->put('/api/pacientes/{id}', [$pacienteController, 'update']);
+    // Rotas de Pacientes
+    $router->get('/api/pacientes', [$pacienteController, 'index']);
+    $router->get('/api/pacientes/{id}', [$pacienteController, 'show']);
+    $router->post('/api/pacientes', [$pacienteController, 'store']);
+    $router->put('/api/pacientes/{id}', [$pacienteController, 'update']);
 
-// Rotas de Médicos
-$router->get('/api/medicos', [$medicoController, 'index']);
-$router->post('/api/medicos', [$medicoController, 'store']);
+    // Rotas de Médicos
+    $router->get('/api/medicos', [$medicoController, 'index']);
+    $router->post('/api/medicos', [$medicoController, 'store']);
 
-// Rotas de Nutricionistas
-$router->get('/api/nutricionistas', [$nutricionistaController, 'index']);
-$router->post('/api/nutricionistas', [$nutricionistaController, 'store']);
+    // Rotas de Nutricionistas
+    $router->get('/api/nutricionistas', [$nutricionistaController, 'index']);
+    $router->post('/api/nutricionistas', [$nutricionistaController, 'store']);
 
-// Rotas de Dietas
-$router->get('/api/dietas', [$dietaController, 'index']);
-$router->post('/api/dietas', [$dietaController, 'store']);
-$router->get('/api/pacientes/{id}/dietas', [$dietaController, 'getDietasPaciente']);
+    // Rotas de Dietas
+    $router->get('/api/dietas', [$dietaController, 'index']);
+    $router->post('/api/dietas', [$dietaController, 'store']);
+    $router->get('/api/pacientes/{id}/dietas', [$dietaController, 'getDietasPaciente']);
 
-// Rotas de Alimentos
-$router->get('/api/alimentos', [$alimentoController, 'index']);
-$router->post('/api/alimentos', [$alimentoController, 'store']);
+    // Rotas de Alimentos
+    $router->get('/api/alimentos', [$alimentoController, 'index']);
+    $router->post('/api/alimentos', [$alimentoController, 'store']);
 
-// Rotas de Consultas
-$router->get('/api/consultas', [$consultaController, 'index']);
-$router->post('/api/consultas', [$consultaController, 'store']);
+    // Rotas de Consultas
+    $router->get('/api/consultas', [$consultaController, 'index']);
+    $router->post('/api/consultas', [$consultaController, 'store']);
 
-// Rotas de Dados Antropométricos
-$router->get('/api/dados-antropometricos', [$dadosController, 'index']);
-$router->post('/api/dados-antropometricos', [$dadosController, 'store']);
-$router->get('/api/pacientes/{id}/dados-antropometricos', [$dadosController, 'getDadosPaciente']);
+    // Rotas de Dados Antropométricos
+    $router->get('/api/dados-antropometricos', [$dadosController, 'index']);
+    $router->post('/api/dados-antropometricos', [$dadosController, 'store']);
+    $router->get('/api/pacientes/{id}/dados-antropometricos', [$dadosController, 'getDadosPaciente']);
 
-$router->handle();
+    $router->handle();
+    
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'error' => 'Erro interno do servidor',
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+}
