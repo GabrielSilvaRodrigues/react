@@ -30,39 +30,43 @@ class Router
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         
-        // Debug: mostrar rota solicitada
-        error_log("Rota solicitada: $method $uri");
-        
-        // Verificar se há rotas registradas para o método
-        if (!isset($this->routes[$method])) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Método não suportado', 'method' => $method, 'uri' => $uri]);
-            return;
-        }
-        
-        foreach ($this->routes[$method] as $route => $callback) {
-            // Escapar caracteres especiais e converter parâmetros
-            $pattern = str_replace('/', '\/', $route);
-            $pattern = preg_replace('/\{([^}]+)\}/', '([^\/]+)', $pattern);
-            $pattern = '/^' . $pattern . '$/';
-            
-            if (preg_match($pattern, $uri, $matches)) {
-                array_shift($matches); // Remove a correspondência completa
-                try {
-                    call_user_func_array($callback, $matches);
-                    return;
-                } catch (Exception $e) {
-                    http_response_code(500);
-                    echo json_encode(['error' => 'Erro interno do servidor: ' . $e->getMessage()]);
-                    return;
-                }
+        // Verificar rota exata primeiro
+        if (isset($this->routes[$method][$uri])) {
+            $callback = $this->routes[$method][$uri];
+            if (is_callable($callback)) {
+                call_user_func($callback);
+                return;
             }
         }
         
+        // Verificar rotas com parâmetros
+        foreach ($this->routes[$method] ?? [] as $route => $callback) {
+            $pattern = preg_replace('/\{([^}]+)\}/', '([^/]+)', $route);
+            $pattern = '#^' . $pattern . '$#';
+            
+            if (preg_match($pattern, $uri, $matches)) {
+                array_shift($matches);
+                if (is_callable($callback)) {
+                    call_user_func_array($callback, $matches);
+                } else {
+                    call_user_func_array($callback, $matches);
+                }
+                return;
+            }
+        }
+        
+        // Rota não encontrada - mostrar rotas disponíveis
         http_response_code(404);
+        $availableRoutes = [];
+        foreach ($this->routes as $method => $routes) {
+            foreach ($routes as $route => $callback) {
+                $availableRoutes[] = "$method $route";
+            }
+        }
+        
         echo json_encode([
-            'error' => 'Rota não encontrada', 
-            'method' => $method, 
+            'error' => 'Rota não encontrada',
+            'method' => $method,
             'uri' => $uri,
             'routes_available' => array_keys($this->routes[$method] ?? [])
         ]);

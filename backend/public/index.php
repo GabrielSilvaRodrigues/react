@@ -16,8 +16,30 @@ use App\Controllers\ConsultaController;
 use App\Controllers\DadosAntropometricosController;
 use App\Core\Router;
 
-// Configurar CORS
-header('Access-Control-Allow-Origin: http://localhost:3000');
+// Configurar CORS para GitHub Codespaces
+$allowedOrigins = [
+    'http://localhost:3000',
+    'https://special-fortnight-wrvw9vq9974xh5jp6-3000.app.github.dev',
+    'https://*.app.github.dev'
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowOrigin = 'http://localhost:3000'; // default
+
+foreach ($allowedOrigins as $allowed) {
+    if (strpos($allowed, '*') !== false) {
+        $pattern = str_replace('*', '.*', $allowed);
+        if (preg_match('#^' . $pattern . '$#', $origin)) {
+            $allowOrigin = $origin;
+            break;
+        }
+    } elseif ($origin === $allowed) {
+        $allowOrigin = $origin;
+        break;
+    }
+}
+
+header('Access-Control-Allow-Origin: ' . $allowOrigin);
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
@@ -38,6 +60,36 @@ try {
     $alimentoController = new AlimentoController();
     $consultaController = new ConsultaController();
     $dadosController = new DadosAntropometricosController();
+
+    // Rota de status da API
+    $router->get('/', function() {
+        echo json_encode([
+            'message' => 'API Sistema de Gestão Médica',
+            'version' => '1.0.0',
+            'status' => 'online',
+            'endpoints' => [
+                'GET /' => 'Status da API',
+                'GET /api/usuarios' => 'Listar usuários',
+                'POST /api/usuarios' => 'Criar usuário',
+                'GET /api/pacientes' => 'Listar pacientes',
+                'POST /api/pacientes' => 'Criar paciente',
+                'GET /api/medicos' => 'Listar médicos',
+                'POST /api/medicos' => 'Criar médico',
+                'GET /api/nutricionistas' => 'Listar nutricionistas',
+                'POST /api/nutricionistas' => 'Criar nutricionista',
+                'GET /api/dados-antropometricos' => 'Listar dados antropométricos',
+                'POST /api/dados-antropometricos' => 'Criar dados antropométricos'
+            ]
+        ]);
+    });
+
+    $router->get('/api', function() {
+        echo json_encode([
+            'message' => 'API Sistema de Gestão Médica',
+            'version' => '1.0.0',
+            'status' => 'online'
+        ]);
+    });
 
     // Rotas de Usuários
     $router->get('/api/usuarios', [$usuarioController, 'index']);

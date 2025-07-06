@@ -105,3 +105,27 @@
 .tabs button.active:hover {
   background-color: #0056b3;
 }
+
+.debug-info {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.error-message {
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin: 5px 0;
+}
+
+.loading {
+  color: #4ecdc4;
+  background-color: rgba(78, 205, 196, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin: 5px 0;
+}

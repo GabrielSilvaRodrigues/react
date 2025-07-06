@@ -14,8 +14,21 @@ class UsuarioController
     
     public function index()
     {
-        $usuarios = $this->usuarioModel->getAll();
-        echo json_encode($usuarios);
+        try {
+            $usuarios = $this->usuarioModel->getAll();
+            echo json_encode([
+                'success' => true,
+                'data' => $usuarios,
+                'count' => count($usuarios)
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Erro interno do servidor',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
     
     public function show($id)

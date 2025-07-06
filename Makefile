@@ -45,3 +45,38 @@ frontend-shell:
 # Acessar MySQL
 mysql:
 	docker-compose exec mysql mysql -u delimeter_user -p delimeter
+
+# Acessar phpMyAdmin
+phpmyadmin:
+	@echo "Acessando phpMyAdmin em: http://localhost:8080"
+	@echo "Usuário: root"
+	@echo "Senha: root123"
+	@echo "Servidor: mysql"
+
+# Mostrar URLs dos serviços
+urls:
+	@echo "=== URLs dos Serviços ==="
+	@echo "Frontend:    http://localhost:3000"
+	@echo "Backend API: http://localhost:8000"
+	@echo "phpMyAdmin:  http://localhost:8080"
+	@echo "=========================="
+
+# Comandos específicos para GitHub Codespaces
+codespaces-setup:
+	@echo "Configurando para GitHub Codespaces..."
+	docker-compose up -d mysql phpmyadmin backend
+	@echo "Aguardando serviços iniciarem..."
+	sleep 10
+	@echo "Executando frontend..."
+	docker-compose up frontend
+
+# Verificar status dos serviços
+status:
+	docker-compose ps
+
+# Ver logs específicos
+logs-backend:
+	docker-compose logs -f backend
+
+logs-mysql:
+	docker-compose logs -f mysql

@@ -17,6 +17,22 @@ services:
     networks:
       - delimeter_network
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: delimeter_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: root123
+      PMA_ARBITRARY: 1
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - delimeter_network
+
   backend:
     build: 
       context: ./backend
@@ -31,6 +47,8 @@ services:
       DB_NAME: delimeter
       DB_USER: delimeter_user
       DB_PASS: delimeter_pass
+      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: ${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}
     depends_on:
       - mysql
     networks:
@@ -48,6 +66,8 @@ services:
       - ./public:/app/public
     environment:
       - REACT_APP_API_URL=http://localhost:8000/api
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     depends_on:
       - backend
     networks:

@@ -26,11 +26,30 @@ Sistema completo com backend PHP e frontend React usando Docker.
 3. **Acessar a aplicação**:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000/api
+   - phpMyAdmin: http://localhost:8080
    - MySQL: localhost:3306
+
+### Acesso ao phpMyAdmin
+
+Para gerenciar o banco de dados através do phpMyAdmin:
+
+1. **Acessar**: http://localhost:8080
+2. **Credenciais**:
+   - Servidor: `mysql`
+   - Usuário: `root`
+   - Senha: `root123`
+
+Ou usar o comando:
+```bash
+make phpmyadmin
+```
 
 ### Comandos Úteis
 
 ```bash
+# Ver URLs de todos os serviços
+make urls
+
 # Ver logs dos serviços
 make logs
 
@@ -51,6 +70,9 @@ make frontend-shell
 
 # Acessar MySQL
 make mysql
+
+# Informações do phpMyAdmin
+make phpmyadmin
 ```
 
 ### Desenvolvimento
@@ -58,8 +80,8 @@ make mysql
 Para desenvolvimento, você pode executar serviços individualmente:
 
 ```bash
-# Apenas backend + banco
-make backend
+# Apenas backend + banco + phpMyAdmin
+docker-compose up mysql phpmyadmin backend
 
 # Apenas frontend
 make frontend
@@ -83,6 +105,13 @@ make frontend
 └── Makefile
 ```
 
+## Serviços Disponíveis
+
+- **MySQL**: Banco de dados principal
+- **phpMyAdmin**: Interface web para gerenciamento do MySQL
+- **Backend PHP**: API REST com endpoints para todas as entidades
+- **Frontend React**: Interface de usuário moderna
+
 ## Variáveis de Ambiente
 
 - `REACT_APP_API_URL`: URL da API para o frontend
@@ -90,3 +119,4 @@ make frontend
 - `DB_NAME`: Nome do banco de dados
 - `DB_USER`: Usuário do banco
 - `DB_PASS`: Senha do banco
+- `PMA_HOST`: Host do MySQL para phpMyAdmin

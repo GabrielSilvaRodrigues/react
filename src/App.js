@@ -2,7 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+// Detectar se está rodando no GitHub Codespaces
+const getApiUrl = () => {
+  if (window.location.hostname.includes('app.github.dev')) {
+    // Extrair o ID do codespace da URL atual
+    const hostname = window.location.hostname;
+    const codespaceId = hostname.split('-')[0];
+    return `https://${codespaceId}-8000.app.github.dev/api`;
+  }
+  return process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+};
+
+const API_URL = getApiUrl();
 
 function App() {
   const [activeTab, setActiveTab] = useState('usuarios');
@@ -11,6 +22,8 @@ function App() {
   const [medicos, setMedicos] = useState([]);
   const [nutricionistas, setNutricionistas] = useState([]);
   const [dadosAntropometricos, setDadosAntropometricos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     nome_usuario: '',
     email_usuario: '',
@@ -48,10 +61,16 @@ function App() {
 
   const fetchUsuarios = async () => {
     try {
+      setLoading(true);
+      setError('');
+      console.log('Fetching from:', `${API_URL}/usuarios`);
       const response = await axios.get(`${API_URL}/usuarios`);
       setUsuarios(response.data);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
+      setError('Erro ao conectar com o servidor');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -208,6 +227,13 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Sistema de Gestão Médica</h1>
+        
+        {/* Mostrar informações de debug */}
+        <div className="debug-info">
+          <small>API URL: {API_URL}</small>
+          {error && <div className="error-message">{error}</div>}
+          {loading && <div className="loading">Carregando...</div>}
+        </div>
         
         <div className="tabs">
           <button 
