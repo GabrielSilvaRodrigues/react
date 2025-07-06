@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: delimeter_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: delimeter
+      MYSQL_USER: delimeter_user
+      MYSQL_PASSWORD: delimeter_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./delimeter.sql:/docker-entrypoint-initdb.d/delimeter.sql
+    networks:
+      - delimeter_network
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: delimeter_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      DB_HOST: mysql
+      DB_NAME: delimeter
+      DB_USER: delimeter_user
+      DB_PASS: delimeter_pass
+    depends_on:
+      - mysql
+    networks:
+      - delimeter_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: delimeter_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+    networks:
+      - delimeter_network
+
+volumes:
+  mysql_data:
+
+networks:
+  delimeter_network:
+    driver: bridge

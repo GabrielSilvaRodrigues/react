@@ -2,115 +2,208 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 function App() {
-  const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({ name: '', email: '' });
-  const [editing, setEditing] = useState(null);
+  const [activeTab, setActiveTab] = useState('usuarios');
+  const [usuarios, setUsuarios] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
+  const [formData, setFormData] = useState({
+    nome_usuario: '',
+    email_usuario: '',
+    senha_usuario: '',
+    cpf: '',
+    nis: ''
+  });
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (activeTab === 'usuarios') {
+      fetchUsuarios();
+    } else if (activeTab === 'pacientes') {
+      fetchPacientes();
+    }
+  }, [activeTab]);
 
-  const fetchUsers = async () => {
+  const fetchUsuarios = async () => {
     try {
-      const response = await axios.get(`${API_URL}/users`);
-      setUsers(response.data);
+      const response = await axios.get(`${API_URL}/usuarios`);
+      setUsuarios(response.data);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
     }
   };
 
-  const handleSubmit = async (e) => {
+  const fetchPacientes = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/pacientes`);
+      setPacientes(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar pacientes:', error);
+    }
+  };
+
+  const handleSubmitUsuario = async (e) => {
     e.preventDefault();
     
     try {
-      if (editing) {
-        await axios.put(`${API_URL}/users/${editing}`, formData);
-        setEditing(null);
-      } else {
-        await axios.post(`${API_URL}/users`, formData);
-      }
+      await axios.post(`${API_URL}/usuarios`, {
+        nome_usuario: formData.nome_usuario,
+        email_usuario: formData.email_usuario,
+        senha_usuario: formData.senha_usuario
+      });
       
-      setFormData({ name: '', email: '' });
-      fetchUsers();
+      setFormData({ nome_usuario: '', email_usuario: '', senha_usuario: '', cpf: '', nis: '' });
+      fetchUsuarios();
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
     }
   };
 
-  const handleEdit = (user) => {
-    setFormData({ name: user.name, email: user.email });
-    setEditing(user.id);
+  const handleSubmitPaciente = async (e) => {
+    e.preventDefault();
+    
+    try {
+      await axios.post(`${API_URL}/pacientes`, formData);
+      
+      setFormData({ nome_usuario: '', email_usuario: '', senha_usuario: '', cpf: '', nis: '' });
+      fetchPacientes();
+    } catch (error) {
+      console.error('Erro ao salvar paciente:', error);
+    }
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteUsuario = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este usuário?')) {
       try {
-        await axios.delete(`${API_URL}/users/${id}`);
-        fetchUsers();
+        await axios.delete(`${API_URL}/usuarios/${id}`);
+        fetchUsuarios();
       } catch (error) {
         console.error('Erro ao deletar usuário:', error);
       }
     }
   };
 
-  const handleCancel = () => {
-    setFormData({ name: '', email: '' });
-    setEditing(null);
-  };
-
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Gerenciador de Usuários</h1>
+        <h1>Sistema de Gestão Médica</h1>
         
-        <form onSubmit={handleSubmit} className="user-form">
-          <div>
-            <input
-              type="text"
-              placeholder="Nome"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              required
-            />
-          </div>
-          <div>
-            <input
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              required
-            />
-          </div>
-          <div>
-            <button type="submit">
-              {editing ? 'Atualizar' : 'Adicionar'} Usuário
-            </button>
-            {editing && (
-              <button type="button" onClick={handleCancel}>
-                Cancelar
-              </button>
-            )}
-          </div>
-        </form>
-
-        <div className="users-list">
-          <h2>Lista de Usuários</h2>
-          {users.map(user => (
-            <div key={user.id} className="user-item">
-              <div>
-                <strong>{user.name}</strong> - {user.email}
-              </div>
-              <div>
-                <button onClick={() => handleEdit(user)}>Editar</button>
-                <button onClick={() => handleDelete(user.id)}>Deletar</button>
-              </div>
-            </div>
-          ))}
+        <div className="tabs">
+          <button 
+            className={activeTab === 'usuarios' ? 'active' : ''}
+            onClick={() => setActiveTab('usuarios')}
+          >
+            Usuários
+          </button>
+          <button 
+            className={activeTab === 'pacientes' ? 'active' : ''}
+            onClick={() => setActiveTab('pacientes')}
+          >
+            Pacientes
+          </button>
         </div>
+
+        {activeTab === 'usuarios' && (
+          <div>
+            <form onSubmit={handleSubmitUsuario} className="user-form">
+              <h2>Cadastrar Usuário</h2>
+              <input
+                type="text"
+                placeholder="Nome"
+                value={formData.nome_usuario}
+                onChange={(e) => setFormData({...formData, nome_usuario: e.target.value})}
+                required
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={formData.email_usuario}
+                onChange={(e) => setFormData({...formData, email_usuario: e.target.value})}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={formData.senha_usuario}
+                onChange={(e) => setFormData({...formData, senha_usuario: e.target.value})}
+                required
+              />
+              <button type="submit">Cadastrar Usuário</button>
+            </form>
+
+            <div className="users-list">
+              <h2>Lista de Usuários</h2>
+              {usuarios.map(usuario => (
+                <div key={usuario.id_usuario} className="user-item">
+                  <div>
+                    <strong>{usuario.nome_usuario}</strong> - {usuario.email_usuario}
+                    <br />
+                    <small>Status: {usuario.status_usuario ? 'Ativo' : 'Inativo'}</small>
+                  </div>
+                  <div>
+                    <button onClick={() => handleDeleteUsuario(usuario.id_usuario)}>Deletar</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'pacientes' && (
+          <div>
+            <form onSubmit={handleSubmitPaciente} className="user-form">
+              <h2>Cadastrar Paciente</h2>
+              <input
+                type="text"
+                placeholder="Nome"
+                value={formData.nome_usuario}
+                onChange={(e) => setFormData({...formData, nome_usuario: e.target.value})}
+                required
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={formData.email_usuario}
+                onChange={(e) => setFormData({...formData, email_usuario: e.target.value})}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={formData.senha_usuario}
+                onChange={(e) => setFormData({...formData, senha_usuario: e.target.value})}
+                required
+              />
+              <input
+                type="text"
+                placeholder="CPF"
+                value={formData.cpf}
+                onChange={(e) => setFormData({...formData, cpf: e.target.value})}
+                required
+              />
+              <input
+                type="text"
+                placeholder="NIS (opcional)"
+                value={formData.nis}
+                onChange={(e) => setFormData({...formData, nis: e.target.value})}
+              />
+              <button type="submit">Cadastrar Paciente</button>
+            </form>
+
+            <div className="users-list">
+              <h2>Lista de Pacientes</h2>
+              {pacientes.map(paciente => (
+                <div key={paciente.id_paciente} className="user-item">
+                  <div>
+                    <strong>{paciente.nome_usuario}</strong> - {paciente.email_usuario}
+                    <br />
+                    <small>CPF: {paciente.cpf} {paciente.nis && `| NIS: ${paciente.nis}`}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
     </div>
   );

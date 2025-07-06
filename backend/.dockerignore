@@ -1,0 +1,6 @@
+.git
+.gitignore
+README.md
+vendor
+composer.lock
+.env
